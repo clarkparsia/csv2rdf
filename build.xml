@@ -1,0 +1,96 @@
+<?xml version="1.0"?>
+<project name="csv2rdf" default="dist" basedir=".">
+	<description>CSV2RDF utility</description>
+	
+	<!-- Global Properties -->
+	<property name="src" location="src"/>
+	<property name="build" location="build"/>
+	<property name="dist" location="dist"/>
+	
+	<property name="project.name" value="csv2rdf"/>
+	<property name="project.version" value="0.1"/>
+	
+	<property name="mainclass" value="com.complexible.common.csv.CSV2RDF"/>
+	
+	<path id="project.class.path">
+		<pathelement location="lib/"/>
+		<pathelement location="${build}"/>
+		<fileset dir="lib">
+			<include name="**/*.jar"/>
+			<exclude name="**/${project.name}*.jar"/>
+		</fileset>
+	</path>
+	
+	<target name="clean" description="Clean up build files">
+		<delete dir="${build}"/>
+		<delete dir="${dist}"/>
+	</target>
+	
+	<target name="init">
+		<pathconvert targetos="unix" property="classpath"
+			refid="project.class.path"/>
+		<!-- Create the time stamp -->
+		<tstamp/>
+		<!-- Create the build directory structure used by compile -->
+		<mkdir dir="${build}"/>
+	</target>
+	
+	<target name="compile" depends="init">
+		<javac source="1.6" target="1.6" destdir="${build}" debug="yes"
+			deprecation="yes">
+			<classpath refid="project.class.path"/>
+			<src path="${src}"/>
+		</javac>
+	</target>
+	
+	<target name="distfiles">
+		<!-- Copy in lib files -->
+		<mkdir dir="${dist}/lib"/>		
+		
+		<copy todir="${dist}/lib">
+			<fileset dir="lib">
+				<include name="**/*.jar"/>
+				<exclude name="**/${project.name}*.jar"/>
+			</fileset>
+		</copy>
+		
+		<copy todir="${dist}">
+			<fileset dir=".">
+				<include name="README.md"/>
+				<include name="LICENSE.txt"/>
+			</fileset>
+		</copy>
+	</target>
+	
+	<target name="dist" depends="compile, distfiles" description="Create a distribution">
+		<!-- Generate relative classpath for jar file -->
+		<property name="rlib" location="${basedir}/lib/"/>
+		<pathconvert dirsep="/" pathsep=" " property="Class-Path">
+			<map from="${rlib}/" to=""/>
+			<map from="${rlib}\" to=""/>
+			<path>
+				<fileset dir="${rlib}">
+					<include name="**/*.jar"/>
+				</fileset>
+			</path>
+		</pathconvert>
+
+		<!-- Make Jar file. -->
+		<jar jarfile="${dist}/lib/${project.name}.jar" basedir="${build}">
+			<manifest>
+				<attribute name="Main-Class" value="${mainclass}"/>
+				<attribute name="Class-Path" value="${Class-Path}"/>
+				
+			</manifest>
+		</jar>
+	</target>
+
+	<target name="zip" depends="dist" description="Create zip file of the distribution">
+		<zip destfile="${dist}/${project.name}-${DSTAMP}.zip">
+			<zipfileset dir="${dist}">
+				<include name="**/*"/>
+				<exclude name="**/*.zip"/>
+			</zipfileset>
+		</zip>
+	</target>
+</project>
